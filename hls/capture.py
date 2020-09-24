@@ -16,6 +16,7 @@ from sqlalchemy_utils import ChoiceType, URLType
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy_utils import database_exists, create_database
+import subprocess as sp
 
 
 logging.basicConfig()
@@ -179,12 +180,32 @@ class CaptureService(object):
                 "segment_duration":int(1)
             }
 
+            # Encode segment
+            out_video_path = "./videos/%s-%s.ts" % (stream_name, filename)
+            encode_segement = [
+                "ffmpeg",
+                "-re", "-i", "./videos/%s-%s.mp4" % (stream_name, filename),
+                "-c:v", "libx264",
+                "-crf", "27",
+                "-preset", "ultrafast",
+                "-c:a", "aac",
+                "-b:a", "1000k",
+                "-bsf:v", "h264_mp4toannexb",
+                "-f", "mpegts",
+                out_video_path
+            ]
+            devnull = open(os.devnull, 'w')
+            sp.call(encode_segement, stdout=devnull, stderr=devnull)
+            
+            # Remove mp4 input file
+            os.system("rm %s" % data['video_path'])
 
             video_part = VideoPart(
-            source=stream_name,
-            timestamp=start_time,
-            video_path=data['video_path'],
-            length=int(1))
+                source=stream_name,
+                timestamp=start_time,
+                video_path=out_video_path,
+                length=int(1)
+            )
             sess.add(video_part)
             sess.commit()
 

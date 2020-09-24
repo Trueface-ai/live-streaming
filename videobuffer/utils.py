@@ -3,6 +3,7 @@ import requests
 import boto3_wasabi
 import random
 import string
+import os
 
 def get_random_string(length):
     #letters = string.ascii_lowercase
@@ -16,8 +17,8 @@ class Wasabi():
     def __init__(self, access_key_id=None, secret_access_key=None):
         self.s3 = boto3_wasabi.client('s3',
           region_name='us-east-1',
-          aws_access_key_id = 'NIVBNXJN5YPM20B5IQZU',
-          aws_secret_access_key = 'Q6StLLwrELbkQINuVpWCnGt5WgvfvKkOM0C6Yv63')
+          aws_access_key_id = os.environ["KEY_ID"],
+          aws_secret_access_key = os.environ["SECRET_KEY"])
         
 
     
